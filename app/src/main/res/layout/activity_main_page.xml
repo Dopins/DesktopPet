@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/activity_main_page"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    tools:context=".MainPage">
+
+<FrameLayout
+    android:layout_width="match_parent"
+    android:layout_height="0dp"
+    android:layout_weight="1"
+    android:id="@+id/mainpage_framelayout">
+</FrameLayout>
+
+    <LinearLayout
+        android:orientation="horizontal"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+        <Button
+            android:layout_weight="1"
+            android:layout_width="0dp"
+            android:layout_margin="10dp"
+            android:layout_height="60dp"
+            android:background="@drawable/extend_btn_shape"
+            android:layout_below="@id/mainpage_framelayout"
+            android:id="@+id/mainpage_preview_modal_button"
+            android:text="模型预览"/>
+
+        <Button
+            android:layout_weight="1"
+            android:layout_width="0dp"
+            android:layout_height="60dp"
+            android:layout_margin="10dp"
+            android:background="@drawable/extend_btn_shape"
+            android:layout_below="@id/mainpage_framelayout"
+            android:text="闹钟"
+            android:id="@+id/mainpage_clock_button"/>
+
+
+        <Button
+            android:layout_weight="1"
+            android:layout_width="0dp"
+            android:layout_height="60dp"
+            android:layout_margin="10dp"
+            android:background="@drawable/extend_btn_shape"
+            android:layout_below="@id/mainpage_framelayout"
+            android:text="设置"
+            android:id="@+id/mainpage_setting_button"/>
+    </LinearLayout>
+</LinearLayout>

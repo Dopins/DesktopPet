@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/small_window_layout"
+    android:orientation="vertical"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    >
+    <LinearLayout
+        android:id="@+id/text_layout"
+        android:orientation="vertical"
+        android:visibility="gone"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content">
+        <TextView
+            android:id="@+id/text"
+            android:padding="8dp"
+            android:ellipsize="end"
+            android:textColor="#363636"
+            android:layout_marginLeft="5dp"
+            android:layout_marginRight="5dp"
+            android:textSize="15dp"
+            android:maxLines="3"
+            android:maxEms="10"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content" />
+    </LinearLayout>
+
+
+        <ImageView android:id="@+id/animationIV"
+            android:layout_gravity="center"
+            android:layout_width="100dp"
+            android:layout_height="100dp"/>
+
+
+    <LinearLayout
+        android:id="@+id/button_layout"
+        android:orientation="vertical"
+        android:visibility="gone"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content">
+        <Button
+            android:id="@+id/btn_open_activity"
+            android:background="@drawable/extend_btn_shape"
+            android:text="首页"
+            android:textSize="12dp"
+            android:textColor="#000000"
+            android:layout_width="wrap_content"
+            android:layout_margin="5dp"
+            android:layout_height="30dp" />
+        <Button
+            android:id="@+id/btn_touch"
+            android:background="@drawable/extend_btn_shape"
+            android:text="触摸"
+            android:textSize="12dp"
+            android:textColor="#000000"
+            android:layout_margin="5dp"
+            android:layout_width="wrap_content"
+            android:layout_height="30dp" />
+        <Button
+            android:id="@+id/btn_back"
+            android:background="@drawable/extend_btn_shape"
+            android:textSize="12dp"
+            android:textColor="#000000"
+            android:layout_margin="5dp"
+            android:text="返回"
+            android:layout_width="wrap_content"
+            android:layout_height="30dp" />
+    </LinearLayout>
+</LinearLayout>  

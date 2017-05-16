@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical"
+    android:layout_marginTop="20dp"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content">
+    <LinearLayout
+        android:orientation="horizontal"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="30dp"
+            android:text="时间: "
+            android:textSize="15dp"
+            android:textColor="#000000"
+            android:id="@+id/clock_time_tips"/>
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="30dp"
+            android:layout_toRightOf="@+id/clock_time_tips"
+            android:id="@+id/clock_time"/>
+    </LinearLayout>
+    <LinearLayout
+        android:orientation="horizontal"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="30dp"
+            android:id="@+id/clock_event_tips"
+            android:layout_below="@+id/clock_time_tips"
+            android:textColor="#000000"
+            android:textSize="15dp"
+            android:text="事件: "/>
+        <TextView
+            android:layout_toRightOf="@+id/clock_event_tips"
+            android:layout_below="@+id/clock_time"
+            android:ellipsize="end"
+            android:lines="1"
+            android:layout_width="wrap_content"
+            android:layout_height="30dp"
+            android:id="@+id/clock_event"/>
+    </LinearLayout>
+    <View
+        android:background="#c2c2c2"
+        android:layout_width="match_parent"
+        android:layout_height="1dp"/>
+
+
+</LinearLayout>
