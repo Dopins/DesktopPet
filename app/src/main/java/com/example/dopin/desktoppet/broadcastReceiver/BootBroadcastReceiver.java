@@ -6,6 +6,9 @@ import android.content.Intent;
 
 import com.example.dopin.desktoppet.service.FloatWindowService;
 
+/**
+ * 监听开机广播，开机自启
+ */
 public class BootBroadcastReceiver extends BroadcastReceiver {
     @Override
     public void onReceive(Context context, Intent intent) {

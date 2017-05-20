@@ -4,6 +4,10 @@ package com.example.dopin.desktoppet.util;
  * Created by dopin on 2017/5/9.
  */
 import android.app.Application;
+
+/**
+ * 全局获取context
+ */
 public class ContextUtil extends Application {
     private static ContextUtil instance;
 

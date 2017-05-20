@@ -2,11 +2,7 @@ package com.example.dopin.desktoppet.util;
 
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
-import android.bluetooth.BluetoothServerSocket;
 import android.bluetooth.BluetoothSocket;
-import android.util.Log;
-
-import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.Map;
 import java.util.UUID;
@@ -47,10 +43,7 @@ public class ClientSocket {
             os=null;
             clientSocket=null;
         }catch (Exception e){
-
         }
-
-
     }
     public void send(String str){
         try{

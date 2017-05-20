@@ -50,24 +50,33 @@ import de.greenrobot.event.Subscribe;
 import de.greenrobot.event.ThreadMode;
 
 public class BluetoothActivity extends Activity {
+    /**
+     * 蓝牙连接建立方式：
+     * 1、请求者发送建立连接请求，sendInfo传递自己宠物的信息过去，显示等待对话框
+     * 2、接受者接受对方的宠物信息并显示，同时发送自己的宠物信息sendInfo
+     * 3、发送者收到回复，取消等待对话框，显示对方宠物信息。
+     */
 
     private BluetoothService bluetoothService;
-    BroadcastReceiver bluetoothReceiver;
-    List<Map<String,String>> deviceData=new ArrayList<>();
-    ListView deviceList;
-    SimpleAdapter adapter;
-    ImageView imageView;
-    TextView textAge;
-    TextView textName;
-    TextView textSex;
-    TextView textSignature;
-    LinearLayout layout;
-    TextView state;
-    Button btnCloseCon;
-    ProgressDialog waitingDialog;
-    boolean isRequester;
-    Handler handler;
-    Runnable runnable;
+    private BroadcastReceiver bluetoothReceiver;
+    private List<Map<String,String>> deviceData=new ArrayList<>();
+    private ListView deviceList;
+    private SimpleAdapter adapter;
+    private ImageView imageView;
+    private TextView textAge;
+    private TextView textName;
+    private TextView textSex;
+    private TextView textSignature;
+    private LinearLayout layout;
+    private TextView state;
+    private Button btnCloseCon;
+    private ProgressDialog waitingDialog;
+    /**
+     * 判断是否为建立蓝牙连接的请求者
+     */
+    private boolean isRequester;
+    private Handler handler;
+    private Runnable runnable;
 
     private ServiceConnection conn = new ServiceConnection() {
         @Override
@@ -82,14 +91,25 @@ public class BluetoothActivity extends Activity {
 
             bluetoothService.setServerSocket();
             bluetoothService.startAccept();
+            /**
+             * 获取已连接的蓝牙设备
+             */
             bluetoothService.setBoundList(deviceData);
             adapter.notifyDataSetChanged();
-
+            /**
+             * 如果已有配对宠物，显示已配对的宠物
+             */
             if(bluetoothService.getCurJsonPet()!=null){
                 setLayoutValue(bluetoothService.getCurJsonPet());
             }
         }
     };
+
+    /**
+     * 通过对方设备的名字获取mac地址
+     * @param name
+     * @return
+     */
     private String getAddressFromPhoneName(String name){
         for(Map<String,String> map:deviceData){
             if(map.get("name").equals(name)) return map.get("address");
@@ -97,6 +117,10 @@ public class BluetoothActivity extends Activity {
         return null;
     }
 
+    /**
+     * 使用eventBus接受fragment传输的事件（关闭连接，拒绝请求，接收消息，完成配对）
+     * @param event
+     */
     @Subscribe(threadMode = ThreadMode.MainThread)
     public void receiveMessage(eventCancel event) {
         showToast(BluetoothService.connectName + "关闭了与你的连接");
@@ -114,8 +138,10 @@ public class BluetoothActivity extends Activity {
         isRequester=false;
         if(waitingDialog.isShowing()) waitingDialog.dismiss();
         bluetoothService.closeClientSocket();
+        /**
+         * 明确收到对方的拒绝请求，不需要在runnable中做操作
+         */
         handler.removeCallbacks(runnable);
-
     }
 
     @Subscribe(threadMode = ThreadMode.MainThread)
@@ -128,21 +154,34 @@ public class BluetoothActivity extends Activity {
             isRequester=false;
             setLayoutValue(jsonPet);
             waitingDialog.dismiss();
-
+            /**
+             * 收到确认后，记录connectAddress
+             */
             BluetoothService.connectAddress=BluetoothService.tryAddress;
             BluetoothService.connectName=jsonPet.getPhoneName();
             bluetoothService.setCurJsonPet(jsonPet);
+        }
+        /**
+         * 接受者收到信息
+         */
+        else{
 
-        }else{
             /**
-             * 请求接受者收到信息
+             * 已有配对，拒绝新的配对请求
              */
-            Map<String,String> map=new HashMap();
-            String address=getAddressFromPhoneName(jsonPet.getPhoneName());//获取对方的mac地址
+            Map<String, String> map = new HashMap();
+            String address = getAddressFromPhoneName(jsonPet.getPhoneName());//获取对方的mac地址
             map.put("name", jsonPet.getPhoneName());//放入对方的名字（用与显示对话框）
             map.put("address", address);//放入对方mac地址
 
-            showAcceptDialog(map, jsonPet);
+            if(BluetoothService.connectAddress!=null){
+                bluetoothService.sendRefuse(map.get("address"));
+            }else {
+                /**
+                 * 接受对话框
+                 */
+                showAcceptDialog(map, jsonPet);
+            }
         }
     }
 
@@ -153,9 +192,15 @@ public class BluetoothActivity extends Activity {
         super.onCreate(savedInstanceState);
         requestWindowFeature(Window.FEATURE_NO_TITLE);
         setContentView(R.layout.activity_bluetooth);
-
+        /**
+         * 注册eventBus
+         */
         EventBus.getDefault().register(this);
+
         handler=new Handler();
+        /**
+         * 连接超时的runnable，声明为成员函数，可以在其他地方取消removeRunnable
+         */
         runnable=new Runnable() {
             @Override
             public void run() {
@@ -179,6 +224,7 @@ public class BluetoothActivity extends Activity {
         state=(TextView)findViewById(R.id.state);
 
         btnCloseCon=(Button)findViewById(R.id.btn_close_con);
+
         btnCloseCon.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -192,6 +238,10 @@ public class BluetoothActivity extends Activity {
             }
         });
         Intent serviceIntent = new Intent(BluetoothActivity.this,BluetoothService.class);
+        /**
+         * BluetoothService初始化start之后就会一直存在，直到整个进程被回收，
+         * 因为start和bind同时使用了，在onDestroy的时候，只调用了unbind
+         */
         if(bluetoothService.isCreated == false) {
             startService(serviceIntent);
         }
@@ -206,7 +256,13 @@ public class BluetoothActivity extends Activity {
             @Override
             public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
                 Map<String, String> map = deviceData.get(i);
-                if (BluetoothService.connectAddress == null) showRequestDialog(map);
+                /**
+                 * 没有连接的设备，可以连接。
+                 * 否则需要取消原有配对
+                 */
+                if (BluetoothService.connectAddress == null) {
+                    showRequestDialog(map);
+                }
                 else if (map.get("address").equals(BluetoothService.connectAddress)) {
                     showToast("已和此设备配对");
                 } else {
@@ -219,6 +275,10 @@ public class BluetoothActivity extends Activity {
         setReceiver();
     }
 
+    /**
+     * 确认是否发送配对请求呈现的对话框
+     * @param map
+     */
     private void showRequestDialog(final Map<String,String> map){
 
         String name=map.get("name");
@@ -236,11 +296,17 @@ public class BluetoothActivity extends Activity {
                          * 传入对方的地址，我方的名字（用于对方获取我方的地址）
                          */
                         bluetoothService.sendInfo(map.get("address"));
-
+                        /**
+                         * 记录尝试建立连接的地址，在收到确认之后，connectAddress=tryAddress
+                         */
                         BluetoothService.tryAddress=map.get("address");
-
+                        /**
+                         * 发送者标记设为true
+                         */
                         isRequester=true;
-
+                        /**
+                         * 5秒后没有回应则为连接超时，取消连接
+                         */
                         handler.postDelayed(runnable, 5000);
                     }
                 });
@@ -257,9 +323,15 @@ public class BluetoothActivity extends Activity {
     private void showToast(String text){
         Toast.makeText(this,text,Toast.LENGTH_SHORT).show();
     }
+
+    /**
+     * 确认是否接受对方请求呈现的对话框
+     * @param map
+     * @param jsonPet
+     */
     private void showAcceptDialog(final Map<String,String> map,final JsonPet jsonPet){
         /**
-         * map中是对方的地址和名字
+         * map中是对方的地址和名字，jsonPet中是对方的宠物信息
          */
         final String name=map.get("name");
 
@@ -279,6 +351,9 @@ public class BluetoothActivity extends Activity {
 
                         BluetoothService.connectAddress=map.get("address");
                         BluetoothService.connectName=name;
+                        /**
+                         * 设置当前连接宠物
+                         */
                         bluetoothService.setCurJsonPet(jsonPet);
 
                         setLayoutValue(jsonPet);
@@ -332,6 +407,11 @@ public class BluetoothActivity extends Activity {
 
         normalDialog.show();
     }
+
+    /**
+     * 在layout中设置对方宠物信息
+     * @param jsonPet
+     */
     private void setLayoutValue(JsonPet jsonPet){
         layout.setVisibility(View.VISIBLE);
         textAge.setText("年龄：" + jsonPet.getAge());
@@ -339,20 +419,28 @@ public class BluetoothActivity extends Activity {
         textSex.setText("性别："+jsonPet.getSex());
         textSignature.setText("个性签名：" + jsonPet.getSignature());
         state.setText("已配对：" + jsonPet.getPhoneName());
-
+        /**
+         * 通过jsonPet初始化一个Pet，获得对方宠物的style信息，知道对方宠物动画是哪个
+         */
         Pet pet=new Pet(jsonPet);
 
         AnimationDrawable ani=pet.getDefaultAni();
         imageView.setImageDrawable(ani);
         ani.start();
-
     }
 
+    /**
+     * 取消连接时清空显示宠物信息的layout
+     */
     private void setLayoutEmpty() {
         layout.setVisibility(View.GONE);
         state.setText("无配对宠物");
 
     }
+
+    /**
+     * 建立连接时等待中显示的对话框
+     */
     private void setWaitingDialog() {
     /* 等待Dialog具有屏蔽其他控件的交互能力
      * @setCancelable 为使屏幕不可点击，设置为不可取消(false)
@@ -366,6 +454,9 @@ public class BluetoothActivity extends Activity {
         waitingDialog.setCancelable(false);
     }
 
+    /**
+     * 接受设备连接状态改变改变的广播接收器
+     */
     private void setReceiver(){
         IntentFilter filter = new IntentFilter();
         //设备连接状态改变
@@ -376,9 +467,13 @@ public class BluetoothActivity extends Activity {
             @Override
             public void onReceive(Context context, Intent intent) {
                 String action = intent.getAction();
-
+                /**
+                 * 设备连接状态改变，就是有新的蓝牙配对，或者取消了配对
+                 */
                 if (BluetoothDevice.ACTION_BOND_STATE_CHANGED.equals(action)) {
-
+                    /**
+                     * 清空list中的数据，重新获取连接的蓝牙设备信息
+                     */
                     deviceData.clear();
                     bluetoothService.setBoundList(deviceData);
                     adapter.notifyDataSetChanged();
@@ -393,6 +488,9 @@ public class BluetoothActivity extends Activity {
     @Override
     protected void onDestroy(){
         super.onDestroy();
+        /**
+         * 取消注册eventBus，取消广播，unbind蓝牙服务
+         */
         EventBus.getDefault().unregister(this);
         unbindService(conn);
         unregisterReceiver(bluetoothReceiver);

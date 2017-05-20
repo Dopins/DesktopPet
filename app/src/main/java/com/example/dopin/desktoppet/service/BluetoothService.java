@@ -3,33 +3,53 @@ package com.example.dopin.desktoppet.service;
 import android.app.Service;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
-import android.content.BroadcastReceiver;
 import android.content.Intent;
 import android.os.Binder;
-import android.os.Handler;
 import android.os.IBinder;
-import android.util.Log;
-
 import com.example.dopin.desktoppet.jsonBean.JsonPet;
-import com.example.dopin.desktoppet.presenter.MyWindowManager;
 import com.example.dopin.desktoppet.util.ClientSocket;
 import com.example.dopin.desktoppet.util.GsonUtil;
 import com.example.dopin.desktoppet.util.ServerSocket;
-
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+/**
+ * 蓝牙连接服务
+ */
 public class BluetoothService extends Service {
+    /**
+     * 是否已经创建service
+     */
     public static boolean isCreated;
+    /**
+     * 连接设备的名字
+     */
     public static String connectName;
+    /**
+     * 连接设备的mac地址
+     */
     public static String connectAddress;
+    /**
+     * 尝试连接的mac地址，用于之后设置connectAddress
+     */
     public static String tryAddress;
+    /**
+     * 当前配对的宠物，没有设为null
+     */
     private JsonPet curJsonPet;
+    /**
+     * 客户端socket，用于发送数据
+     */
     private ClientSocket clientSocket;
+    /**
+     * 服务端socket，用于接受数据
+     */
     private ServerSocket serverSocket;
+    /**
+     * 每个设备既是客户端，又是服务端
+     */
     BluetoothAdapter mBluetoothAdapter;
     private MyBinder myBinder = new MyBinder();
     public class MyBinder extends Binder {
@@ -88,6 +108,12 @@ public class BluetoothService extends Service {
         }
         clientSocket.send("refuse");
     }
+
+    /**
+     * 通过mac地址建立socket连接
+     * @param address
+     * @return
+     */
     private ClientSocket connectDevice(String address){
         ClientSocket socket=new ClientSocket(address,mBluetoothAdapter);
         return socket;
