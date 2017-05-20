@@ -118,7 +118,6 @@ public class ClockFragment extends Fragment {
         Map<String,?> map=sharedPreferences.getAll();
         SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
         for(String key:map.keySet()){
-            Log.w("tag", key);
             String note=(String)map.get(key);
             try {
                 Date date=simpleDateFormat.parse(key);

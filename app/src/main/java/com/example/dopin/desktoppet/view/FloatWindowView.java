@@ -5,6 +5,7 @@ import android.content.Intent;
 import android.graphics.Color;
 import android.graphics.drawable.AnimationDrawable;
 import android.os.Handler;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.view.View;
@@ -70,7 +71,8 @@ public class FloatWindowView extends LinearLayout {
      */
     private float yInView;
 
-    private boolean isLeft=false;
+    //0，1,2 分别代表窗口位置位于贴左边，不贴边，贴右边。
+    private int position=2;
 
     private boolean movable =true;
 
@@ -89,20 +91,31 @@ public class FloatWindowView extends LinearLayout {
 
     private Pet pet;
 
+    private int imageWidth;
+
+    private int screenWidth;
+
     public FloatWindowView(Context context) {
         super(context);
         windowManager = (WindowManager) context.getSystemService(Context.WINDOW_SERVICE);
         LayoutInflater.from(context).inflate(R.layout.float_window_small, this);
-        View view = findViewById(R.id.small_window_layout);
+
+        View view =findViewById(R.id.small_window_layout);
         viewWidth = view.getLayoutParams().width;
         viewHeight = view.getLayoutParams().height;
+
         animationIV = (ImageView) findViewById(R.id.animationIV);
         buttonLayout=(LinearLayout)findViewById(R.id.button_layout);
         textLayout=(LinearLayout)findViewById(R.id.text_layout);
         noticeText=(TextView)findViewById(R.id.text);
+
+        imageWidth=animationIV.getLayoutParams().width;
+
         Button btnOpenActivity =(Button)findViewById(R.id.btn_open_activity);
         Button btnBack =(Button)findViewById(R.id.btn_back);
         Button btnTouch =(Button)findViewById(R.id.btn_touch);
+
+        screenWidth = windowManager.getDefaultDisplay().getWidth();
 
         btnOpenActivity.setOnClickListener(new OnClickListener() {
             @Override
@@ -111,7 +124,6 @@ public class FloatWindowView extends LinearLayout {
                 intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
                         getContext().startActivity(intent);
 
-                hiddenAni();
                 buttonLayout.setVisibility(GONE);
             }
         });
@@ -119,7 +131,6 @@ public class FloatWindowView extends LinearLayout {
         btnBack.setOnClickListener(new OnClickListener() {
             @Override
             public void onClick(View view) {
-                hiddenAni();
                 buttonLayout.setVisibility(GONE);
             }
         });
@@ -136,7 +147,7 @@ public class FloatWindowView extends LinearLayout {
             @Override
             public void onClick(View view) {
                 textLayout.setVisibility(GONE);
-                hiddenAni();
+                setDefault();
             }
         });
 
@@ -144,32 +155,41 @@ public class FloatWindowView extends LinearLayout {
         runnable=new Runnable() {
             @Override
             public void run() {
-                hiddenAni();
+                setDefault();
             }
         };
 
         this.pet = FloatWindowService.curPet;
-        hiddenAni();
+        setDefault();
     }
     public void notice(String text){
+        /**
+         * 取消touchAni设置的postDelay
+         */
+        handler.removeCallbacks(runnable);
         textLayout.setVisibility(VISIBLE);
         noticeText.setText(text);
         noticeText.setBackgroundResource(R.drawable.notice_text_shape);
+        buttonLayout.setVisibility(GONE);
         noticeAni();
     }
     public void alarm(String text){
+        handler.removeCallbacks(runnable);//取消
         textLayout.setVisibility(VISIBLE);
         noticeText.setText("备忘: "+text);
         noticeText.setBackgroundResource(R.drawable.alarm_text_shape);
+        buttonLayout.setVisibility(GONE);
         alarmAni();
     }
     public void changePet(){
         pet=FloatWindowService.curPet;
-        hiddenAni();
+        setDefault();
     }
     @Override
     public boolean onTouchEvent(MotionEvent event) {
-        if(movable ==false) return true;
+        if(movable ==false||buttonLayout.getVisibility()==View.VISIBLE) {
+            return true;
+        }
         switch (event.getAction()) {
             case MotionEvent.ACTION_DOWN:
                 // 手指按下时记录必要数据,纵坐标的值都需要减去状态栏高度
@@ -183,30 +203,49 @@ public class FloatWindowView extends LinearLayout {
             case MotionEvent.ACTION_MOVE:
                 xInScreen = event.getRawX();
                 yInScreen = event.getRawY() - getStatusBarHeight();
+
+                /**
+                 * 不能在action_move的时候更新xInView，因为小窗口的位置更新依靠的是，手指到屏幕左上角的位置减去手指到view
+                 * 左上角的位置，即event.getRawX()-event.getX()，可以得到view应该的位置，用来设置位置参数。
+                 * 如果在这里更新xInView，这时候event.getX()相对的是view原本的位置，而不是新的，因为还没更新。
+                 * 这时候view的位置是不变的。
+                 * 放在更新后面就可以
+                 */
                 // 手指移动的时候更新小悬浮窗的位置
                 updateViewPosition();
                 moveAni();
                 isMove=true;
                 break;
             case MotionEvent.ACTION_UP:
+                /**
+                 * 获取手指离开时，手指位置到小窗口左上角的距离
+                 */
+                xInView = event.getX();
+                yInView = event.getY();
                 // 如果手指离开屏幕时，xDownInScreen和xInScreen相等，且yDownInScreen和yInScreen相等，则视为触发了单击事件。
                 if (xDownInScreen == xInScreen && yDownInScreen == yInScreen) {
+
                     buttonLayout.setVisibility(VISIBLE);
-                    defaultAni();
                 }else{
-                    int screenWidth = windowManager.getDefaultDisplay().getWidth();
-                    if(xInScreen<screenWidth/2) {
-                        xInScreen=0;
-                        isLeft=true;
-                    }
-                    else {
-                        xInScreen=screenWidth;
-                        isLeft=false;
+                    /**
+                     *手指到屏幕左上角距离-手指到小窗口左上角距离=0
+                     * 就是小窗口贴左边的时候
+                     */
+                    if((xInScreen - xInView)==0) {
+                        position=0;
+                        /**
+                         * 手指到屏幕左上角距离-手指到小窗口左上角距离+imageView大小=屏幕宽度
+                         * 就是贴右边的时候
+                         */
+                    } else if((xInScreen-xInView+imageWidth)==screenWidth){
+                        position=2;
+                    }else{
+                        position=1;
                     }
                     updateViewPosition();
-                    isMove=false;
-                    hiddenAni();
+                    setDefault();
                 }
+                isMove=false;
                 break;
             default:
                 break;
@@ -219,43 +258,41 @@ public class FloatWindowView extends LinearLayout {
         animationIV.setImageDrawable(ani);
         ani.start();
     }
-    private void defaultAni(){
-        AnimationDrawable ani=pet.getDefaultAni();
-        animationIV.setImageDrawable(ani);
-        ani.start();
-        movable =false;
-    }
-    private void alarmAni(){
+    private void setDefault(){
         handler.removeCallbacks(runnable);//取消
         buttonLayout.setVisibility(GONE);
+        textLayout.setVisibility(GONE);
+        defaultAni();
+    }
+    private void defaultAni(){
+
+        AnimationDrawable ani;
+        if(position==0){
+            ani=pet.getHiddenLeftAni();
+        }else if(position==2){
+            ani = pet.getHiddenRightAni();
+        }else{
+            ani=pet.getDefaultAni();
+        }
+
+        animationIV.setImageDrawable(ani);
+        ani.start();
+
+        movable =true;
+    }
+    private void alarmAni() {
         AnimationDrawable ani=pet.getAlarmAni();
         animationIV.setImageDrawable(ani);
         ani.start();
         movable =false;
     }
-    private void noticeAni(){
-        handler.removeCallbacks(runnable);
-        buttonLayout.setVisibility(GONE);
+    private void noticeAni() {
         AnimationDrawable ani=pet.getNoticeAni();
         animationIV.setImageDrawable(ani);
         ani.start();
         movable =false;
     }
-    private void hiddenAni(){
-        handler.removeCallbacks(runnable);//取消
-        buttonLayout.setVisibility(GONE);
-        textLayout.setVisibility(GONE);
 
-        movable =true;
-        AnimationDrawable ani;
-        if(isLeft){
-            ani=pet.getHiddenLeftAni();
-        }else{
-            ani=pet.getHiddenRightAni();
-        }
-        animationIV.setImageDrawable(ani);
-        ani.start();
-    }
     private void touchAni(){
         AnimationDrawable ani=pet.getTouchAni();
         animationIV.setImageDrawable(ani);

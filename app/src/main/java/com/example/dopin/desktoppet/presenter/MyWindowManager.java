@@ -3,6 +3,7 @@ package com.example.dopin.desktoppet.presenter;
 import android.app.ActivityManager;
 import android.content.Context;
 import android.graphics.PixelFormat;
+import android.util.Log;
 import android.view.Gravity;
 import android.view.WindowManager;
 import com.example.dopin.desktoppet.view.FloatWindowView;
@@ -49,6 +50,7 @@ public class MyWindowManager {
                 smallWindowParams.gravity = Gravity.LEFT | Gravity.TOP;
                 smallWindowParams.width = FloatWindowView.viewWidth;
                 smallWindowParams.height = FloatWindowView.viewHeight;
+
                 smallWindowParams.x = screenWidth;
                 smallWindowParams.y = screenHeight / 2;
             }

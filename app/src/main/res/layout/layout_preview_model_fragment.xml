@@ -5,19 +5,22 @@
     android:layout_height="match_parent">
 
     <android.support.v4.view.ViewPager
-        android:layout_margin="20dp"
-        android:layout_width="match_parent"
-        android:layout_height="300dp"
+        android:layout_marginTop="100dp"
+        android:padding="20dp"
+        android:layout_gravity="center"
+        android:background="@drawable/preview_viewpager"
+        android:layout_width="200dp"
+        android:layout_height="200dp"
         android:id="@+id/show_model" />
     <Button
         android:id="@+id/btn_change_pet"
-        android:layout_marginTop="20dp"
+        android:layout_marginTop="50dp"
         android:layout_gravity="center"
         android:background="@drawable/change_pet__btn_shape"
         android:textColor="#ffffff"
         android:text="切换\n宠物"
-        android:layout_width="80dp"
-        android:layout_height="80dp" />
+        android:layout_width="100dp"
+        android:layout_height="100dp" />
 
 
 </LinearLayout>

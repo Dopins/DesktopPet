@@ -100,6 +100,5 @@ public class addClockFragment extends Fragment
         SharedPreferences sp = getContext().getSharedPreferences("alarm", Context.MODE_PRIVATE);
         sp.edit().putString(dateString, note).commit();
 
-        Log.w("tag", dateString);
     }
 }
