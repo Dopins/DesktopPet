@@ -14,20 +14,12 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.Toast;
-
 import com.example.dopin.desktoppet.R;
 import com.example.dopin.desktoppet.activity.MainActivity;
 import com.example.dopin.desktoppet.adapter.ClockAdapter;
-import com.example.dopin.desktoppet.broadcastReceiver.AlarmBroadcastReceiver;
 import com.example.dopin.desktoppet.entity.Clock;
 import com.example.dopin.desktoppet.service.BluetoothService;
 import com.example.dopin.desktoppet.util.AlarmUtil;
-
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 import java.util.Map;
 

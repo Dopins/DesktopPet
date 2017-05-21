@@ -138,8 +138,8 @@ public class SettingFragment extends Fragment
 
     /**
      * 使用SharedPreferences存储,有时间可以存到后台。
-     * @param key
-     * @param value
+     * @param key 宠物信息名字
+     * @param value 宠物信息的值
      */
     private void setPetInfo(String key,String value){
         String style=FloatWindowService.curPet.getJsonPet().getStyle();

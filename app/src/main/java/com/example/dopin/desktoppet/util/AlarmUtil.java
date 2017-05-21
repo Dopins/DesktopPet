@@ -24,9 +24,15 @@ public class AlarmUtil {
     static SharedPreferences sharedPreferences = ContextUtil.getInstance().getSharedPreferences("alarm", Context.MODE_PRIVATE);
     static SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 
-    //set a alarm with a long type time
-    public static int setAlarm(String note,long time,Date date)
+    /**
+     * 设置闹铃
+     * @param note 备忘
+     * @param date 时间
+     * @return -1设置失败 0成功
+     */
+    public static int setAlarm(String note,Date date)
     {
+        long time=date.getTime();
         long curTime=System.currentTimeMillis();
         if(time<=curTime)
             return -1;//time has gone
@@ -40,14 +46,15 @@ public class AlarmUtil {
         alarmManager.set(AlarmManager.RTC_WAKEUP, time, sender);
         return 0;
     }
-    //set a alarm with a date type time
-    public static int setAlarm(String action,Date time )
-    {
-        return setAlarm(action, time.getTime(), time);
-    }
     public static boolean isExits(String dateString){
         return sharedPreferences.contains(dateString);
     }
+
+    /**
+     * 从sp文件中删除闹铃记录
+     * @param dateString
+     * @return
+     */
     public static int removeAlarm(String dateString){
         if(sharedPreferences.contains(dateString)){
             sharedPreferences.edit().remove(dateString).commit();
@@ -60,14 +67,26 @@ public class AlarmUtil {
         String dateString= simpleDateFormat.format(date);
         return removeAlarm(dateString);
     }
+
+    /**
+     * 得到所有有效闹钟
+     * @return
+     */
     public static ArrayList<Clock> getClockList(){
         ArrayList<Clock> list=new ArrayList<>();
         Map<String,?> map=sharedPreferences.getAll();
         for(String key:map.keySet()){
-            String note=(String)map.get(key);
             try {
                 Date date=simpleDateFormat.parse(key);
-                list.add(new Clock(note,date));
+                /**
+                 * 闹铃时间大于当前时间，闹铃才有效,否则移除这个闹铃
+                 */
+                if(date.getTime()>System.currentTimeMillis()){
+                    String note=(String)map.get(key);
+                    list.add(new Clock(note,date));
+                }else{
+                    removeAlarm(date);
+                }
             } catch (ParseException e) {
                 e.printStackTrace();
             }
