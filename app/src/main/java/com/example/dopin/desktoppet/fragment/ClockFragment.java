@@ -22,6 +22,7 @@ import com.example.dopin.desktoppet.adapter.ClockAdapter;
 import com.example.dopin.desktoppet.broadcastReceiver.AlarmBroadcastReceiver;
 import com.example.dopin.desktoppet.entity.Clock;
 import com.example.dopin.desktoppet.service.BluetoothService;
+import com.example.dopin.desktoppet.util.AlarmUtil;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -37,7 +38,6 @@ import java.util.Map;
 public class ClockFragment extends Fragment {
 
     MainActivity mainActivity;
-    SharedPreferences sharedPreferences;
     RecyclerView recyclerView;
     List<Clock> clockList;
     ClockAdapter clockAdapter;
@@ -51,14 +51,12 @@ public class ClockFragment extends Fragment {
         LinearLayoutManager linearLayout=new LinearLayoutManager(getContext());
         recyclerView.setLayoutManager(linearLayout);
 
-        sharedPreferences = getContext().getSharedPreferences("alarm", Context.MODE_PRIVATE);
-
-        clockList=getClockList();
+        clockList=AlarmUtil.getClockList();
         clockAdapter=new ClockAdapter(clockList);
 
-        clockAdapter.setOnItemClickListener(new ClockAdapter.OnItemClickListener(){
+        clockAdapter.setOnItemClickListener(new ClockAdapter.OnItemClickListener() {
             @Override
-            public void onItemClick (View view,final int position){
+            public void onItemClick(View view, final int position) {
                 showRemoveAlarmDialog(position);
             }
 
@@ -68,11 +66,9 @@ public class ClockFragment extends Fragment {
 
         FloatingActionButton addClock=(FloatingActionButton)view.findViewById(R.id.add_clock);
 
-        addClock.setOnClickListener(new View.OnClickListener()
-        {
+        addClock.setOnClickListener(new View.OnClickListener() {
             @Override
-            public void onClick(View v)
-            {
+            public void onClick(View v) {
                 mainActivity.switchFragment(mainActivity.addClockFragment);
             }
         });
@@ -102,31 +98,11 @@ public class ClockFragment extends Fragment {
     }
     private void removeAlarm(int position){
         Clock clock=clockList.get(position);
-        SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-        String dateString= simpleDateFormat.format(clock.getTime());
-        sharedPreferences.edit().remove(dateString).commit();
-
+        AlarmUtil.removeAlarm(clock.getTime());
 
         clockList.remove(position);
         clockAdapter.notifyDataSetChanged();
 
-        //TODO:remove alarm
-
-    }
-    private ArrayList<Clock> getClockList(){
-        ArrayList<Clock> list=new ArrayList<>();
-        Map<String,?> map=sharedPreferences.getAll();
-        SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-        for(String key:map.keySet()){
-            String note=(String)map.get(key);
-            try {
-                Date date=simpleDateFormat.parse(key);
-                list.add(new Clock(note,date));
-            } catch (ParseException e) {
-                e.printStackTrace();
-            }
-        }
-        return list;
     }
 
 }

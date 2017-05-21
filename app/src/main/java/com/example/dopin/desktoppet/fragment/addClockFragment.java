@@ -21,6 +21,7 @@ import android.widget.TimePicker;
 import com.example.dopin.desktoppet.R;
 import com.example.dopin.desktoppet.activity.MainActivity;
 import com.example.dopin.desktoppet.broadcastReceiver.AlarmBroadcastReceiver;
+import com.example.dopin.desktoppet.util.AlarmUtil;
 
 import java.lang.reflect.Field;
 import java.text.ParseException;
@@ -94,7 +95,7 @@ public class addClockFragment extends Fragment
     }
     private void setAlarm(Date date,String note){
         SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-        new AlarmBroadcastReceiver(getContext()).setAlarm(note, date);
+        AlarmUtil.setAlarm(note, date);
 
         String dateString= simpleDateFormat.format(date);
         SharedPreferences sp = getContext().getSharedPreferences("alarm", Context.MODE_PRIVATE);

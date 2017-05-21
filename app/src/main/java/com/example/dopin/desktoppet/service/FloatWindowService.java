@@ -11,6 +11,7 @@ import android.os.IBinder;
 import com.example.dopin.desktoppet.broadcastReceiver.AlarmBroadcastReceiver;
 import com.example.dopin.desktoppet.entity.Pet;
 import com.example.dopin.desktoppet.presenter.MyWindowManager;
+import com.example.dopin.desktoppet.util.AlarmUtil;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -92,7 +93,7 @@ public class FloatWindowService extends Service {
             String note=(String)map.get("key");
             try {
                 Date date=simpleDateFormat.parse(key);
-                new AlarmBroadcastReceiver(getApplicationContext()).setAlarm(note,date);
+                AlarmUtil.setAlarm(note, date);
             } catch (ParseException e) {
                 e.printStackTrace();
             }
